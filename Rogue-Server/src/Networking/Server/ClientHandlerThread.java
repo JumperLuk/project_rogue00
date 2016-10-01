@@ -10,81 +10,97 @@ import java.net.Socket;
  */
 public class ClientHandlerThread extends Thread {
 
-    private Socket socket;
     private Server server;
 
-    PrintWriter outputStream = null;
-    BufferedReader inputStream = null;
+    private Connection con;
+    private ConnectionReader reader;
 
-    private String messageToSend;
-    private boolean sendMessage;
-    private boolean keepRunning;
+    private Object lockStop = new Object();
+    private boolean stop = false;
 
     public ClientHandlerThread(Socket socket, Server server)
     {
-        this.socket = socket;
+        if(socket == null)
+            throw new RuntimeException("Socket is null (ClientHandlerThread)");
+
+        con = new Connection(socket);
+        reader = con.getReader();
         this.server = server;
-        this.keepRunning = true;
     }
 
     @Override
     public void run()
     {
-        keepRunning = true;
+        if(con.isInactive())
+            throw new RuntimeException("No connection to socket/stream(Client)");
 
-        try {
-            outputStream = new PrintWriter(socket.getOutputStream(), true);
-            inputStream = new BufferedReader(new InputStreamReader(socket.getInputStream()));
 
-            while (keepRunning)
-            {
-                String temp = inputStream.readLine();
-                System.out.println(temp);
-                DataPackage dataPackage = DataPackage.toDatapackage(temp);
-                server.processDataPackage(dataPackage);
-            }
-        }
-        catch (Exception e)
+        ConnectionReader reader = con.getReader();
+        String str;
+
+        while(true)
         {
-            System.err.println("Failed to get stream(s) " + e);
-        }
-        finally {
-
-            //Always close streams to prevent heap leaks
-            try {
-                if (outputStream != null)
-                    outputStream.close();
-                if (inputStream != null)
-                    inputStream.close();
-                if (socket != null)
-                    socket.close();
-            }
-            catch (Exception e)
+            synchronized (lockStop)
             {
-                System.err.print("Error at closing Stream/Socket " + e);
+                if(stop)
+                {
+                    con.close();
+                    return;
+                }
             }
+
+            while((str = reader.readMessage()) == null)
+            {
+                synchronized (lockStop)
+                {
+                    if (stop)
+                    {
+                        con.close();
+                        return;
+                    }
+                }
+            }
+
+            try
+            {
+                Thread.sleep(50);
+            }
+            catch (InterruptedException e)
+            {
+                throw new RuntimeException(e);
+            }
+
+            synchronized (lockStop)
+            {
+                if (stop)
+                {
+                    con.close();
+                    return;
+                }
+            }
+
+            processMessage(str);
+
         }
+
     }
 
     public void close()
     {
-        try {
-            if (outputStream != null)
-                outputStream.close();
-            if (inputStream != null)
-                inputStream.close();
-            if (socket != null)
-                socket.close();
-        }
-        catch (Exception e)
+        synchronized (lockStop)
         {
-            System.err.println("Failed at closing one Serverclient: "+ e);
+            stop = true;
         }
     }
 
-    public void writeToClient(DataPackage dataPackage) throws IOException
+    public void processMessage(String str)
     {
-        outputStream.println(dataPackage.toString());
+        server.processMessage(str);
+    }
+
+    public void writeToClient(String str) throws IOException
+    {
+        con.write(str);
     }
 
 }

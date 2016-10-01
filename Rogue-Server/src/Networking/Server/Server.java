@@ -16,7 +16,7 @@ public class Server extends Thread{
     private final int  CONNECTION_LIMIT = 4;
 
     private ServerSocket serverSock; //Networking.Server.Server.Networking.Server.Server Socket to listen
-    private ArrayList<ClientHandlerThread> clients; //List of connected clients
+    protected ArrayList<ClientHandlerThread> clients; //List of connected clients
 
     public Server(int port)
     {
@@ -85,19 +85,17 @@ public class Server extends Thread{
         keepListening = false;
     }
 
-
-    public void processDataPackage(DataPackage dataPackage)
+    public void processMessage(String str)
     {
-        //Do stuff...
-        broadcast(dataPackage);
+
     }
 
-    public synchronized void broadcast(DataPackage dataPackage)
+    public synchronized void broadcast(String str)
     {
         for(int i = 0; i < clients.size(); i++)
         {
             try {
-                clients.get(i).writeToClient(dataPackage);
+                clients.get(i).writeToClient(str);
             }
             catch (Exception e)
             {

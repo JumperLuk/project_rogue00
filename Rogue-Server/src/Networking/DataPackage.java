@@ -33,9 +33,8 @@ public class DataPackage {
 
     public static DataPackage toDatapackage(String str)
     {
-        DataPackage temp = new DataPackage();
-        temp.setValue(Integer.parseInt(str.substring(0, str.indexOf(";"))));
-        return temp;
+     //TODO: Do stuff!!
+        return new DataPackage(1);
     }
 
 }

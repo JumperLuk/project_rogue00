@@ -18,7 +18,8 @@ public class TestClient {
             Connection connection = new Connection(socket);
             Client client = new Client(connection);
             client.start();
-            client.send(new DataPackage(61232354));
+            client.send("Hi");
+            Thread.sleep(100);
             client.close();
         }
         catch (Exception e)

@@ -24,6 +24,7 @@ public class Connection {
         try {
             out = new PrintWriter(socket.getOutputStream());
             reader = new ConnectionReader(new BufferedReader(new InputStreamReader(socket.getInputStream())));
+            reader.start();
         }
         catch (IOException e)
         {

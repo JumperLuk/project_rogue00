@@ -17,7 +17,7 @@ public class TestServer {
             echoServer.start();
 
 
-            Thread.sleep(100000);
+            Thread.sleep(1000000);
 
             echoServer.close();
         }

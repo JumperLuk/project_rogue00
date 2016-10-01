@@ -85,13 +85,7 @@ public class Client extends Thread{
 
     public void processMessage(String str)
     {
-        System.out.println(str);
-    }
 
-    public void processPackage(DataPackage dataPackage)
-    {
-        //Do stuff!
-        System.out.print("Process pack: " + dataPackage.toString());
     }
 
     public void send(String str)
