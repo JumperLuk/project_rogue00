@@ -2,8 +2,7 @@ package Networking.Client;
 
 import Networking.DataPackage;
 
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
+import java.io.*;
 import java.net.DatagramPacket;
 import java.net.InetAddress;
 import java.net.Socket;
@@ -15,45 +14,48 @@ public class Client extends Thread{
 
     private Socket socket;
 
-    private ObjectInputStream inputStream = null;
-    private ObjectOutputStream outputStream = null;
+    private BufferedReader inputStream = null;
+    private PrintWriter outputStream = null;
 
     private InetAddress inetAddress;
     private int port;
 
     private boolean keepRunning;
 
+    private boolean initiated;
+
     public Client(InetAddress inetAddress, int port)
     {
         this.inetAddress = inetAddress;
         this.port = port;
-
-        try {
-            socket = new Socket(inetAddress, port);
-            outputStream = new ObjectOutputStream(socket.getOutputStream());
-            inputStream = new ObjectInputStream(socket.getInputStream());
-        }
-        catch (Exception e)
-        {
-                System.err.println("Failed at creating Socket or Stream(Client): " + e);
-        }
+        this.initiated = false;
     }
 
     @Override
     public void run()
     {
+        try {
+            socket = new Socket(inetAddress, port);
+            outputStream = new PrintWriter(socket.getOutputStream(), true);
+            inputStream = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+
+            initiated = true;
+        }
+        catch (Exception e)
+        {
+            System.err.println("Failed at creating Socket or Stream(Client): " + e);
+            return;
+        }
+
         keepRunning = true;
 
-        while(true) {
-            if (!keepRunning)
-                break;
+        while(keepRunning) {
 
             try {
-
-                while (inputStream.available() > 0) {
-                    DataPackage dataPackage = (DataPackage) inputStream.readObject();
-                    processPackage(dataPackage);
-                }
+                int temp = inputStream.read();
+                System.out.println(temp);
+                DataPackage dataPackage = DataPackage.toDatapackage("" + temp);
+                processPackage(dataPackage);
                 Thread.sleep(10);
 
             } catch (Exception e) {
@@ -65,13 +67,16 @@ public class Client extends Thread{
     public void processPackage(DataPackage dataPackage)
     {
         //Do stuff!
-        System.out.print(dataPackage.getTest());
+        System.out.print("Process pack: " + dataPackage.toString());
     }
 
     public void send(DataPackage dataPackage)
     {
+        if(!initiated)
+            return;
+
         try {
-            outputStream.writeObject(dataPackage);
+            outputStream.println(dataPackage.toString());
         }
         catch (Exception e)
         {
@@ -79,8 +84,22 @@ public class Client extends Thread{
         }
     }
 
-    public void halt()
+    public void close()
     {
         keepRunning = false;
+
+        try {
+            if (outputStream != null)
+                outputStream.close();
+            if (inputStream != null)
+                inputStream.close();
+            if (socket != null)
+                socket.close();
+        }
+        catch (Exception e)
+        {
+            System.err.println("Failed at closing Client: " + e);
+        }
     }
+
 }

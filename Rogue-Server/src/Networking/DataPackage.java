@@ -5,16 +5,37 @@ package Networking;
  */
 public class DataPackage {
 
-    String test;
+    int value;
 
-    public DataPackage(String test)
+    public DataPackage()
     {
-        this.test = test;
+
     }
 
-    public String getTest()
+    public DataPackage(int value)
     {
-        return test;
+        this.value = value;
+    }
+
+
+    public int getValue() {
+        return value;
+    }
+
+    public void setValue(int value) {
+        this.value = value;
+    }
+
+    public String toString()
+    {
+        return "" + value + ";";
+    }
+
+    public static DataPackage toDatapackage(String str)
+    {
+        DataPackage temp = new DataPackage();
+        temp.setValue(Integer.parseInt(str.substring(0, str.indexOf(";"))));
+        return temp;
     }
 
 }

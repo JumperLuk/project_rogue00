@@ -39,11 +39,8 @@ public class Server extends Thread{
     {
         keepListening = true;
 
-        while (true)
+        while (keepListening || clients.size() > CONNECTION_LIMIT)
         {
-            if(!keepListening || clients.size() > CONNECTION_LIMIT)
-                break;
-
             try {
                 ClientHandlerThread temp = new ClientHandlerThread(serverSock.accept(), this);
                 clients.add(temp);
@@ -65,6 +62,24 @@ public class Server extends Thread{
         }
     }
 
+    public void close()
+    {
+        keepListening = false;
+        try {
+            if (serverSock != null)
+                serverSock.close();
+
+            for (int i = 0; i < clients.size(); i++)
+            {
+                clients.get(i).close();
+            }
+        }
+        catch (Exception e)
+        {
+            System.err.println("Closing failed(Server): " + e);
+        }
+    }
+
     public void stopListening()
     {
         keepListening = false;
@@ -82,7 +97,7 @@ public class Server extends Thread{
         for(int i = 0; i < clients.size(); i++)
         {
             try {
-                clients.get(i).sendPackage(dataPackage);
+                clients.get(i).writeToClient(dataPackage);
             }
             catch (Exception e)
             {
@@ -90,10 +105,4 @@ public class Server extends Thread{
             }
         }
     }
-
-    public void halt()
-    {
-        keepListening = false;
-    }
-
 }

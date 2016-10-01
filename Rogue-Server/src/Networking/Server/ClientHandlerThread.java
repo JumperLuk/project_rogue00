@@ -13,8 +13,8 @@ public class ClientHandlerThread extends Thread {
     private Socket socket;
     private Server server;
 
-    ObjectOutputStream outputStream = null;
-    ObjectInputStream inputStream = null;
+    PrintWriter outputStream = null;
+    BufferedReader inputStream = null;
 
     private String messageToSend;
     private boolean sendMessage;
@@ -24,23 +24,23 @@ public class ClientHandlerThread extends Thread {
     {
         this.socket = socket;
         this.server = server;
+        this.keepRunning = true;
     }
 
     @Override
     public void run()
     {
+        keepRunning = true;
+
         try {
-            outputStream = new ObjectOutputStream(socket.getOutputStream());
-            inputStream = new ObjectInputStream(socket.getInputStream());
+            outputStream = new PrintWriter(socket.getOutputStream(), true);
+            inputStream = new BufferedReader(new InputStreamReader(socket.getInputStream()));
 
-
-
-            while (true)
+            while (keepRunning)
             {
-                if(!keepRunning)
-                    break;
-
-                DataPackage dataPackage = (DataPackage) inputStream.readObject();
+                String temp = inputStream.readLine();
+                System.out.println(temp);
+                DataPackage dataPackage = DataPackage.toDatapackage(temp);
                 server.processDataPackage(dataPackage);
             }
         }
@@ -66,9 +66,25 @@ public class ClientHandlerThread extends Thread {
         }
     }
 
-    public void sendPackage(DataPackage dataPackage) throws IOException
+    public void close()
     {
-        outputStream.writeObject(dataPackage);
+        try {
+            if (outputStream != null)
+                outputStream.close();
+            if (inputStream != null)
+                inputStream.close();
+            if (socket != null)
+                socket.close();
+        }
+        catch (Exception e)
+        {
+            System.err.println("Failed at closing one Serverclient: "+ e);
+        }
+    }
+
+    public void writeToClient(DataPackage dataPackage) throws IOException
+    {
+        outputStream.println(dataPackage.toString());
     }
 
 }
