@@ -1,8 +1,8 @@
-package Networking.Server; /**
+package Networking.Server;
+
+/**
  * Created by schueler on 30.09.2016.
  */
-
-import Networking.DataPackage;
 
 import java.net.*;
 import java.util.ArrayList;
@@ -39,7 +39,7 @@ public class Server extends Thread{
     {
         keepListening = true;
 
-        while (keepListening || clients.size() > CONNECTION_LIMIT)
+        while (keepListening && clients.size() > CONNECTION_LIMIT)
         {
             try {
                 ClientHandlerThread temp = new ClientHandlerThread(serverSock.accept(), this);
@@ -80,11 +80,6 @@ public class Server extends Thread{
         }
     }
 
-    public void stopListening()
-    {
-        keepListening = false;
-    }
-
     public void processMessage(String str)
     {
 
@@ -99,7 +94,7 @@ public class Server extends Thread{
             }
             catch (Exception e)
             {
-                System.err.print("DataPackage couldn't be sent (broadcast): " + e);
+                System.err.print("String couldn't be sent (broadcast): " + e);
             }
         }
     }

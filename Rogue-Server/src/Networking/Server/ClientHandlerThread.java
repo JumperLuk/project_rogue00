@@ -1,7 +1,5 @@
 package Networking.Server;
 
-import Networking.DataPackage;
-
 import java.io.*;
 import java.net.Socket;
 

@@ -1,13 +1,7 @@
 package Networking.Client;
 
-import Networking.DataPackage;
 import Networking.Server.Connection;
 import Networking.Server.ConnectionReader;
-
-import java.io.*;
-import java.net.DatagramPacket;
-import java.net.InetAddress;
-import java.net.Socket;
 
 /**
  * Created by schueler on 01.10.2016.
@@ -91,10 +85,6 @@ public class Client extends Thread{
     public void send(String str)
     {
         con.write(str);
-    }
-
-    public void send(DataPackage dataPackage)
-    {
     }
 
     public void close()
